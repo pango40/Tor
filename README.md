@@ -1,4 +1,12 @@
 # Tor
 change identify 1m
-run 
+#How to run 
+install 
+
 pkg install tor 
+
+git clone https://github.com/pango40/Tor.git
+
+cd Tor 
+
+bash tor.sh 
