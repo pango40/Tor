@@ -9,4 +9,6 @@ git clone https://github.com/pango40/Tor.git
 
 cd Tor 
 
+chmod +x Tor
+
 bash tor.sh 
