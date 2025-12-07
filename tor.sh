@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# Auto-fix CRLF issue for GitHub downloads
-if [ -n "$(cat "$0" 2>/dev/null | head -1 | grep -o '\r')" ] || [ "$(head -c 2 "$0" 2>/dev/null | od -c | grep -o '\\r')" ]; then
-    echo "🔧 Fixing GitHub CRLF issue..."
-    sed -i 's/\r$//' "$0" 2>/dev/null
-    exec /bin/bash "$0" "$@"
+# FIRST: Fix CRLF issue immediately
+if [ -f "$0" ]; then
+    # Quick fix for \r
+    tr -d '\r' < "$0" > "/tmp/tor_fixed.sh" 2>/dev/null
+    chmod +x "/tmp/tor_fixed.sh"
+    exec "/tmp/tor_fixed.sh" "$@"
     exit 0
 fi
 
@@ -18,7 +19,7 @@ MAGENTA="\e[35m"
 BOLD="\e[1m"
 RESET="\e[0m"
 
-# ASCII Logo for obitõ - Clean Version
+# ASCII Logo for obitõ
 echo -e "${CYAN}${BOLD}"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║                                                      ║"
@@ -48,7 +49,8 @@ echo -e "${CYAN}${BOLD}┌──────────────────
 echo -e "${YELLOW}├─ User:${RESET} $(whoami)"
 echo -e "${YELLOW}├─ Host:${RESET} $(hostname)"
 echo -e "${YELLOW}├─ Time:${RESET} $(date '+%Y-%m-%d %H:%M:%S')"
-echo -e "${YELLOW}├─ Initial IP:${RESET} $(curl -s ifconfig.me 2>/dev/null || echo "Not connected")"
+INITIAL_IP=$(curl -s ifconfig.me 2>/dev/null || echo "Not connected")
+echo -e "${YELLOW}├─ Initial IP:${RESET} $INITIAL_IP"
 echo -e "${CYAN}${BOLD}└──────────────────────────────────────────────────────┘${RESET}"
 
 # Contact Information
@@ -95,11 +97,11 @@ fi
 
 # Get initial IP through Tor
 echo -e "${CYAN}[+] Getting initial IP...${RESET}"
-INITIAL_IP=$(curl --socks5 localhost:9050 -s ifconfig.me 2>/dev/null || curl -s ifconfig.me 2>/dev/null)
+TOR_IP=$(curl --socks5 localhost:9050 -s ifconfig.me 2>/dev/null || curl -s ifconfig.me 2>/dev/null)
 
-if [ -n "$INITIAL_IP" ]; then
+if [ -n "$TOR_IP" ]; then
     echo -e "${GREEN}✅ Tor started successfully!${RESET}"
-    echo -e "${CYAN}[+] Tor IP: ${YELLOW}$INITIAL_IP${RESET}"
+    echo -e "${CYAN}[+] Tor IP: ${YELLOW}$TOR_IP${RESET}"
 else
     echo -e "${YELLOW}⚠️  Could not get IP. Tor might be still starting...${RESET}"
 fi
@@ -145,9 +147,12 @@ while true; do
     
     # Wait 60 seconds with countdown
     echo -e "${BLUE}Next rotation in 60 seconds...${RESET}"
-    for i in {60..1}; do
+    # Using POSIX-compliant for loop
+    i=60
+    while [ $i -gt 0 ]; do
         echo -ne "\r${YELLOW}Time remaining: ${i}s${RESET}     "
         sleep 1
+        i=$((i - 1))
     done
     echo -ne "\r${GREEN}Starting next rotation...${RESET}          \n"
     
