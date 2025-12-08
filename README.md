@@ -13,4 +13,5 @@ chmod +x Tor
 
 cd Tor
 
-bash tor.py
+ 
+ python tor.py
